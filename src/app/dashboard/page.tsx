@@ -9,6 +9,7 @@ import { AnchrChat } from "@/components/anchr-chat";
 import { AnchrLogo } from "@/components/anchr-logo";
 import { BroadcastPanel } from "@/components/broadcast-panel";
 import { HyperspellConnectButton } from "@/components/hyperspell-connect-button";
+import { NewsroomPanel } from "@/components/newsroom-panel";
 import { Button } from "@/components/ui/button";
 import { getHyperspellToken } from "@/app/actions/hyperspell";
 import { api } from "../../../convex/_generated/api";
@@ -85,6 +86,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-8">
+          <NewsroomPanel />
+        </div>
+
+        <div className="mt-6">
           <AnchrChat />
         </div>
 

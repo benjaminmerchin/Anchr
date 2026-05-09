@@ -54,10 +54,12 @@ export default defineSchema({
     .index("by_user_status", ["userId", "status"])
     .index("by_user_detected", ["userId", "detectedAt"]),
 
-  /** A generated broadcast (script + optional video) tied to a story */
+  /** A generated broadcast (script + optional video). Tied to a story when
+   * one triggered it, or `undefined` for newsroom-wide segments that scan
+   * everything the user has connected. */
   broadcasts: defineTable({
     userId: v.id("users"),
-    storyId: v.id("stories"),
+    storyId: v.optional(v.id("stories")),
     title: v.string(),
     /** The narrated script the AI anchor reads */
     script: v.string(),
@@ -85,4 +87,14 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_story", ["storyId"])
     .index("by_user_status", ["userId", "status"]),
+
+  /** Per-user schedule for the daily newsroom cron. Disabled by default. */
+  schedules: defineTable({
+    userId: v.id("users"),
+    enabled: v.boolean(),
+    /** "HH:MM" 24h time, interpreted as UTC. */
+    timeOfDayUTC: v.string(),
+    lastRunAt: v.optional(v.number()),
+    lastBroadcastId: v.optional(v.id("broadcasts")),
+  }).index("by_user", ["userId"]),
 });

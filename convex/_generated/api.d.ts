@@ -10,7 +10,9 @@
 
 import type * as auth from "../auth.js";
 import type * as broadcasts from "../broadcasts.js";
+import type * as crons from "../crons.js";
 import type * as http from "../http.js";
+import type * as schedules from "../schedules.js";
 import type * as stories from "../stories.js";
 import type * as users from "../users.js";
 
@@ -23,7 +25,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   broadcasts: typeof broadcasts;
+  crons: typeof crons;
   http: typeof http;
+  schedules: typeof schedules;
   stories: typeof stories;
   users: typeof users;
 }>;

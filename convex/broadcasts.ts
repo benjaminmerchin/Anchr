@@ -40,7 +40,7 @@ export const getForStory = query({
  */
 export const startRendering = mutation({
   args: {
-    storyId: v.id("stories"),
+    storyId: v.optional(v.id("stories")),
     title: v.string(),
     script: v.string(),
   },
@@ -50,12 +50,29 @@ export const startRendering = mutation({
 
     return await ctx.db.insert("broadcasts", {
       userId,
-      storyId: args.storyId,
+      ...(args.storyId ? { storyId: args.storyId } : {}),
       title: args.title,
       script: args.script,
       videoProvider: "heygen",
       status: "rendering",
     });
+  },
+});
+
+/**
+ * The most recent newsroom-wide broadcast for the viewer (no storyId).
+ */
+export const getLatestNewsroom = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return null;
+    const rows = await ctx.db
+      .query("broadcasts")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .order("desc")
+      .collect();
+    return rows.find((b) => b.storyId === undefined) ?? null;
   },
 });
 
@@ -105,7 +122,9 @@ export const markPublished = mutation({
     await ctx.db.patch(broadcastId, {
       publishedAt: Date.now(),
     });
-    // Also flip the linked story to "live"
-    await ctx.db.patch(existing.storyId, { status: "live" });
+    // Flip the linked story to "live" if this broadcast came from one.
+    if (existing.storyId) {
+      await ctx.db.patch(existing.storyId, { status: "live" });
+    }
   },
 });

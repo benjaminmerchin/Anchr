@@ -148,23 +148,32 @@ export function BroadcastPanel({ storyId }: Props) {
             broadcast · ready
           </div>
           {published ? (
-            <PublishedBadges urls={urls} />
+            <PublishedBadges urls={urls} videoUrl={broadcast.videoUrl} />
           ) : (
-            <Button
-              onClick={publish}
-              disabled={publishing}
-              size="sm"
-              className={cn(
-                "rounded-full bg-white text-xs text-black hover:bg-white/90",
-              )}
-            >
-              {publishing ? (
-                <Loader2 className="mr-1 size-3.5 animate-spin" />
-              ) : (
-                <Play className="mr-1 size-3.5 fill-current" />
-              )}
-              Publish to all
-            </Button>
+            <div className="flex items-center gap-2">
+              <a
+                href={broadcast.videoUrl}
+                download
+                className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-xs text-white/80 hover:bg-white/[0.08] hover:text-white"
+              >
+                Download
+              </a>
+              <Button
+                onClick={publish}
+                disabled={publishing}
+                size="sm"
+                className={cn(
+                  "rounded-full bg-white text-xs text-black hover:bg-white/90",
+                )}
+              >
+                {publishing ? (
+                  <Loader2 className="mr-1 size-3.5 animate-spin" />
+                ) : (
+                  <Play className="mr-1 size-3.5 fill-current" />
+                )}
+                Publish to all
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -176,11 +185,13 @@ export function BroadcastPanel({ storyId }: Props) {
 
 function PublishedBadges({
   urls,
+  videoUrl,
 }: {
   urls: { youtube: string; tiktok: string; instagram: string };
+  videoUrl: string;
 }) {
   return (
-    <div className="flex items-center gap-2 text-xs">
+    <div className="flex flex-wrap items-center gap-2 text-xs">
       <span className="flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-emerald-300">
         <CheckCircle2 className="size-3" />
         live
@@ -191,8 +202,7 @@ function PublishedBadges({
         rel="noreferrer"
         className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-white/75 hover:text-white"
       >
-        <Film className="size-3" />
-        YouTube
+        <Film className="size-3" /> YouTube
       </a>
       <a
         href={urls.tiktok}
@@ -200,8 +210,7 @@ function PublishedBadges({
         rel="noreferrer"
         className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-white/75 hover:text-white"
       >
-        <Music className="size-3" />
-        TikTok
+        <Music className="size-3" /> TikTok
       </a>
       <a
         href={urls.instagram}
@@ -209,8 +218,14 @@ function PublishedBadges({
         rel="noreferrer"
         className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-white/75 hover:text-white"
       >
-        <Camera className="size-3" />
-        Instagram
+        <Camera className="size-3" /> Instagram
+      </a>
+      <a
+        href={videoUrl}
+        download
+        className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-white/75 hover:text-white"
+      >
+        Download
       </a>
     </div>
   );

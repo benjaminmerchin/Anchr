@@ -4,7 +4,16 @@ import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { convexAuthNextjsToken } from "@convex-dev/auth/nextjs/server";
 
 import { generateHeyGenVideo } from "@/lib/heygen";
-import { generateAnchorScript, type ScriptTone } from "@/lib/script-gen";
+import {
+  getHyperspellForCurrentUser,
+  getInstalledSources,
+  searchMemories,
+} from "@/lib/hyperspell";
+import {
+  generateAnchorScript,
+  generateNewsroomScript,
+  type ScriptTone,
+} from "@/lib/script-gen";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 
@@ -110,4 +119,123 @@ export async function publishBroadcast(
   const token = await convexAuthNextjsToken();
   if (!token) throw new Error("Not authenticated");
   await fetchMutation(api.broadcasts.markPublished, { broadcastId }, { token });
+}
+
+export type GenerateNewsroomResult =
+  | { ok: true; broadcastId: Id<"broadcasts">; videoUrl: string }
+  | {
+      ok: false;
+      stage: "auth" | "context" | "script" | "video";
+      message: string;
+    };
+
+/**
+ * Generate the daily "newsroom" broadcast — scans all of the user's connected
+ * Hyperspell sources, runs the investigative-anchor prompt over what comes
+ * back, and renders the result with HeyGen.
+ */
+export async function generateNewsroomBroadcast(): Promise<GenerateNewsroomResult> {
+  const token = await convexAuthNextjsToken();
+  if (!token) {
+    return { ok: false, stage: "auth", message: "Not authenticated" };
+  }
+
+  // 1. Pull a corpus of documents from Hyperspell, scoped to whichever
+  //    integrations the user actually connected.
+  let documents: Array<{ source?: string; title?: string; content?: string }> = [];
+  try {
+    const { client, userId } = await getHyperspellForCurrentUser();
+    const sources = await getInstalledSources(client);
+    if (sources.length > 0) {
+      const broadQueries = [
+        "What's the most important thing happening at the company right now?",
+        "Any product, pricing, or roadmap changes?",
+        "Any internal disagreements, leadership decisions, or growth pressure?",
+      ];
+      const results = await Promise.all(
+        broadQueries.map((q) =>
+          searchMemories(userId, q, { sources, answer: false }).catch(
+            () => ({ documents: [] }),
+          ),
+        ),
+      );
+      const seen = new Set<string>();
+      for (const r of results) {
+        for (const d of r.documents ?? []) {
+          const doc = d as Record<string, unknown>;
+          const key = String(
+            doc.id ?? doc.uri ?? doc.title ?? JSON.stringify(doc),
+          );
+          if (seen.has(key)) continue;
+          seen.add(key);
+          documents.push({
+            source: typeof doc.source === "string" ? doc.source : undefined,
+            title:
+              typeof doc.title === "string"
+                ? doc.title
+                : typeof doc.uri === "string"
+                  ? doc.uri
+                  : undefined,
+            content:
+              typeof doc.content === "string"
+                ? doc.content
+                : typeof doc.text === "string"
+                  ? doc.text
+                  : typeof doc.snippet === "string"
+                    ? doc.snippet
+                    : undefined,
+          });
+        }
+      }
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      stage: "context",
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
+
+  // 2. Newsroom script via OpenAI.
+  let title: string;
+  let script: string;
+  try {
+    const generated = await generateNewsroomScript(documents);
+    title = generated.title;
+    script = generated.script;
+  } catch (err) {
+    return {
+      ok: false,
+      stage: "script",
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
+
+  const broadcastId = await fetchMutation(
+    api.broadcasts.startRendering,
+    { title, script },
+    { token },
+  );
+
+  // 3. HeyGen renders the avatar reading the script.
+  try {
+    const { videoUrl } = await generateHeyGenVideo(script);
+    await fetchMutation(
+      api.broadcasts.setReady,
+      { broadcastId, videoUrl },
+      { token },
+    );
+    return { ok: true, broadcastId, videoUrl };
+  } catch (err) {
+    await fetchMutation(
+      api.broadcasts.setFailed,
+      { broadcastId },
+      { token },
+    ).catch(() => undefined);
+    return {
+      ok: false,
+      stage: "video",
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
