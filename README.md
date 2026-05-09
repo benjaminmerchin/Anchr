@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Anchr
 
-## Getting Started
+> Your company has stories. Anchr tells them.
 
-First, run the development server:
+Anchr is the AI news anchor for product teams: it ingests your team's data through **Hyperspell** (Slack, Gmail, GitHub, Notion, Drive, Calendar) and the wider web through **Nia**, detects the stories worth telling, and ships polished video updates — auto-generated, on-brand, ready to post.
+
+Built at the **Hyperspell × Nia "Company Brain" hackathon**.
+
+## Live demo
+
+🛰️ **<https://anchr-ten.vercel.app>**
+
+## Stack
+
+| Layer | Tech |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Styling | Tailwind v4 · shadcn/ui · Magic UI |
+| Backend | Convex (DB, queries, actions, cron) |
+| Auth | Convex Auth (Password + Anonymous) |
+| AI | Vercel AI Gateway · Claude Sonnet 4.6 |
+| Context | Hyperspell · Nia |
+
+## Local setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx convex dev          # one-time: provisions your Convex cloud project
+npm run dev             # starts Next.js on http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Required env vars (auto-written by `npx convex dev` into `.env.local`):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+NEXT_PUBLIC_CONVEX_URL=https://<your-project>.convex.cloud
+CONVEX_DEPLOYMENT=<dev|prod>:<name>
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Routes
 
-## Learn More
+| Path | Purpose |
+| --- | --- |
+| `/` | Public marketing landing |
+| `/sign-in` | Email/password + one-click anonymous demo |
+| `/dashboard` | Story feed (protected) |
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Vercel build command (with Convex sync):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npx convex deploy --cmd 'next build' --preview-name $VERCEL_GIT_COMMIT_SHA
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Set `CONVEX_DEPLOY_KEY` and `NEXT_PUBLIC_CONVEX_URL` in Vercel env vars.

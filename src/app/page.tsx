@@ -1,20 +1,42 @@
-import { ArrowRight, Play, Radio, Sparkles, Zap } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Brain,
+  GitPullRequest,
+  Megaphone,
+  Mic,
+  Play,
+  Plug2,
+  Send,
+  Sparkles,
+  Telescope,
+} from "lucide-react";
 
 import { AnchrLogo } from "@/components/anchr-logo";
+import { DataFlow } from "@/components/data-flow";
+import { ScriptPreview } from "@/components/script-preview";
 import { FloatingShapes } from "@/components/shapes";
 import { SourcePill } from "@/components/source-pill";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { Marquee } from "@/components/ui/marquee";
-import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { NumberTicker } from "@/components/ui/number-ticker";
 import { cn } from "@/lib/utils";
 
-const SOURCES = ["Slack", "Gmail", "GitHub", "Notion", "Drive", "Calendar", "Linear"];
+const SOURCES = [
+  "Slack",
+  "Gmail",
+  "GitHub",
+  "Notion",
+  "Drive",
+  "Calendar",
+  "Linear",
+];
 
 const STEPS = [
   {
-    icon: Radio,
+    icon: Plug2,
     title: "Connect",
     body:
       "Plug Slack, Gmail, GitHub and Notion into Hyperspell. Anchr ingests your team's pulse — every PR, every thread, every doc.",
@@ -26,10 +48,53 @@ const STEPS = [
       "An always-on agent scans for stories: features shipped, milestones hit, user feedback that matters. Nia keeps facts fresh and on-the-record.",
   },
   {
-    icon: Zap,
+    icon: Send,
     title: "Broadcast",
     body:
       "A polished video update — scripted in your voice, narrated by your AI anchor — ready to ship to TikTok, LinkedIn, or your team's inbox.",
+  },
+];
+
+const STATS: Array<{
+  value: number;
+  suffix: string;
+  label: string;
+  decimals?: number;
+}> = [
+  { value: 12, suffix: "+", label: "Sources synced" },
+  { value: 3200, suffix: "", label: "Signals detected" },
+  { value: 847, suffix: "", label: "Broadcasts shipped" },
+  { value: 4.2, suffix: "×", label: "Reach lift", decimals: 1 },
+];
+
+const FEATURES = [
+  {
+    icon: Mic,
+    title: "Voice consistency",
+    body:
+      "Trained on every doc your team has ever written. Anchr writes like a human inside your company — not like an AI.",
+    accent: "col-span-1 row-span-1 md:col-span-2",
+  },
+  {
+    icon: GitPullRequest,
+    title: "Trigger-based publishing",
+    body:
+      "A PR merges. Two hours later, a polished update is live. Founders never have to think about content again.",
+    accent: "col-span-1 row-span-1",
+  },
+  {
+    icon: Telescope,
+    title: "Competitive hooks",
+    body:
+      "Nia tracks your competitors' changelogs and outages. Anchr surfaces the angles you would have missed.",
+    accent: "col-span-1 row-span-1",
+  },
+  {
+    icon: Megaphone,
+    title: "Ship to every platform",
+    body:
+      "Same broadcast, ten formats. TikTok 30s. LinkedIn 90s. YouTube 4 min. Email digest. Slack #releases.",
+    accent: "col-span-1 row-span-1 md:col-span-2",
   },
 ];
 
@@ -44,6 +109,9 @@ export default function Home() {
             <a href="#how" className="transition hover:text-white">
               How it works
             </a>
+            <a href="#features" className="transition hover:text-white">
+              Features
+            </a>
             <a href="#sources" className="transition hover:text-white">
               Sources
             </a>
@@ -52,19 +120,25 @@ export default function Home() {
             </a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className="hidden text-sm text-white/80 hover:bg-white/10 hover:text-white sm:inline-flex"
+            <Link
+              href="/sign-in"
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "hidden h-9 px-4 text-sm text-white/80 hover:bg-white/10 hover:text-white sm:inline-flex",
+              )}
             >
               Sign in
-            </Button>
-            <Button
-              variant="secondary"
-              className="rounded-full bg-white text-sm font-medium text-black hover:bg-white/90"
+            </Link>
+            <Link
+              href="/sign-in"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "h-9 rounded-full bg-white px-4 text-sm font-medium text-black hover:bg-white/90",
+              )}
             >
               Get started
               <ArrowRight className="ml-1 size-3.5" />
-            </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -73,14 +147,14 @@ export default function Home() {
       <section className="relative isolate flex flex-1 items-center overflow-hidden">
         {/* Animated code-style grid */}
         <AnimatedGridPattern
-          numSquares={40}
-          maxOpacity={0.08}
+          numSquares={60}
+          maxOpacity={0.12}
           duration={3}
-          repeatDelay={1}
-          width={48}
-          height={48}
+          repeatDelay={0.6}
+          width={44}
+          height={44}
           className={cn(
-            "[mask-image:radial-gradient(700px_circle_at_center,white,transparent)]",
+            "[mask-image:radial-gradient(800px_circle_at_center,white,transparent)]",
             "absolute inset-0 h-full w-full skew-y-0 fill-white/10 stroke-white/10",
           )}
         />
@@ -118,26 +192,27 @@ export default function Home() {
 
           <BlurFade delay={0.3} inView>
             <p className="mx-auto mt-7 max-w-2xl text-balance text-center text-lg text-white/60 md:text-xl">
-              Anchr turns your team's data into polished video updates —
+              Anchr turns your team&apos;s data into polished video updates —
               auto-generated, on-brand, ready to ship. No more silent shipping.
             </p>
           </BlurFade>
 
           <BlurFade delay={0.45} inView>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <ShimmerButton
-                shimmerColor="#ffffff"
-                background="rgba(255,255,255,0.06)"
-                className="px-7 py-3.5 text-sm font-medium"
+              <Link
+                href="/sign-in"
+                className={cn(
+                  buttonVariants(),
+                  "h-12 rounded-full bg-white px-7 text-sm font-medium text-black hover:bg-white/90",
+                )}
               >
-                <span className="flex items-center gap-2">
-                  Start broadcasting
-                  <ArrowRight className="size-4" />
-                </span>
-              </ShimmerButton>
+                Start broadcasting
+                <ArrowRight className="ml-1.5 size-4" />
+              </Link>
               <Button
                 variant="ghost"
-                className="gap-2 px-6 py-6 text-white/80 hover:bg-white/5 hover:text-white"
+                size="lg"
+                className="h-12 gap-2 rounded-full border border-white/15 bg-white/[0.03] px-7 text-sm font-medium text-white/85 backdrop-blur hover:bg-white/[0.08] hover:text-white"
               >
                 <Play className="size-4 fill-current" />
                 Watch a 60-second demo
@@ -165,6 +240,29 @@ export default function Home() {
         </Marquee>
       </section>
 
+      {/* Stats */}
+      <section className="relative border-b border-white/5 py-14">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-y-10 px-6 md:grid-cols-4 md:gap-y-0">
+          {STATS.map((s, i) => (
+            <BlurFade key={s.label} delay={0.05 * i} inView>
+              <div className="flex flex-col items-center text-center">
+                <div className="flex items-baseline text-4xl font-semibold tracking-[-0.03em] text-white tabular-nums md:text-5xl">
+                  <NumberTicker
+                    value={s.value}
+                    decimalPlaces={s.decimals ?? 0}
+                    className="text-white"
+                  />
+                  <span className="ml-0.5">{s.suffix}</span>
+                </div>
+                <span className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
+                  {s.label}
+                </span>
+              </div>
+            </BlurFade>
+          ))}
+        </div>
+      </section>
+
       {/* How it works */}
       <section
         id="how"
@@ -175,7 +273,9 @@ export default function Home() {
             How it works
           </p>
           <h2 className="mt-3 max-w-3xl text-balance text-3xl font-semibold tracking-[-0.03em] text-white md:text-5xl">
-            From scattered signals to a finished broadcast.
+            From scattered{" "}
+            <span className="font-serif italic font-normal">signals</span> to a
+            finished broadcast.
           </h2>
         </BlurFade>
 
@@ -203,9 +303,135 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Demo preview */}
-      <section className="relative mx-auto w-full max-w-6xl px-6 pb-28">
+      {/* Data flow visualization */}
+      <section className="relative isolate overflow-hidden border-y border-white/5 bg-gradient-to-b from-transparent via-white/[0.015] to-transparent py-24">
+        {/* faint dot accents */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-1/2 size-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/5 blur-3xl" />
+        </div>
+        <div className="mx-auto w-full max-w-6xl px-6">
+          <BlurFade inView>
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/40">
+                Data convergence
+              </p>
+              <h2 className="mt-3 text-balance text-3xl font-semibold tracking-[-0.03em] text-white md:text-5xl">
+                One brain.{" "}
+                <span className="font-serif italic font-normal">
+                  Every signal
+                </span>
+                .
+              </h2>
+              <p className="mx-auto mt-5 max-w-xl text-balance text-white/60">
+                Hyperspell ingests. Nia validates. Anchr broadcasts. Every
+                message, every PR, every doc — funneled into a single voice.
+              </p>
+            </div>
+          </BlurFade>
+          <BlurFade delay={0.2} inView>
+            <DataFlow />
+          </BlurFade>
+        </div>
+      </section>
+
+      {/* Bento features */}
+      <section
+        id="features"
+        className="relative mx-auto w-full max-w-6xl px-6 py-28"
+      >
         <BlurFade inView>
+          <div className="flex items-end justify-between gap-8">
+            <div>
+              <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/40">
+                Why Anchr
+              </p>
+              <h2 className="mt-3 max-w-2xl text-balance text-3xl font-semibold tracking-[-0.03em] text-white md:text-5xl">
+                Marketing that{" "}
+                <span className="font-serif italic font-normal">writes</span>{" "}
+                itself.
+              </h2>
+            </div>
+            <p className="hidden max-w-sm text-sm text-white/60 md:block">
+              Built for shipping teams who don&apos;t have a content person — or
+              who do, but want them focused on something bigger than weekly
+              updates.
+            </p>
+          </div>
+        </BlurFade>
+
+        <div className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-3">
+          {FEATURES.map(({ icon: Icon, title, body, accent }, i) => (
+            <BlurFade key={title} delay={0.07 * i} inView>
+              <div
+                className={cn(
+                  "group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-7 backdrop-blur transition duration-300 hover:border-white/20 hover:bg-white/[0.04]",
+                  accent,
+                )}
+              >
+                <div className="mb-5 grid size-11 place-items-center rounded-xl border border-white/15 bg-white/[0.04]">
+                  <Icon className="size-5 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  {title}
+                </h3>
+                <p className="mt-2.5 max-w-md text-sm leading-relaxed text-white/60">
+                  {body}
+                </p>
+                {/* corner accent shape */}
+                <div className="pointer-events-none absolute -bottom-10 -right-10 size-40 rounded-full border border-white/[0.04] bg-white/[0.015]" />
+              </div>
+            </BlurFade>
+          ))}
+        </div>
+      </section>
+
+      {/* Script preview */}
+      <section className="relative isolate overflow-hidden border-y border-white/5 py-28">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute right-0 top-0 size-[420px] rounded-full bg-white/[0.04] blur-3xl" />
+          <div className="absolute -bottom-20 left-0 size-[420px] rounded-full bg-white/[0.04] blur-3xl" />
+        </div>
+        <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+          <BlurFade inView>
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/40">
+              Inside the studio
+            </p>
+            <h2 className="mt-3 text-balance text-3xl font-semibold tracking-[-0.03em] text-white md:text-5xl">
+              Watch a script{" "}
+              <span className="font-serif italic font-normal">
+                write itself
+              </span>
+              .
+            </h2>
+            <p className="mt-5 max-w-md text-white/60 md:text-lg">
+              Vercel AI Gateway routes the prompt. Hyperspell hands over the
+              week&apos;s context. Nia checks the facts. The result lands in
+              your inbox before stand-up.
+            </p>
+            <div className="mt-7 flex items-center gap-4 text-sm text-white/50">
+              <Brain className="size-4 text-white/60" />
+              <span>Claude Sonnet 4.6 · routed by AI Gateway</span>
+            </div>
+          </BlurFade>
+
+          <BlurFade delay={0.15} inView>
+            <ScriptPreview />
+          </BlurFade>
+        </div>
+      </section>
+
+      {/* Demo preview */}
+      <section className="relative mx-auto w-full max-w-6xl px-6 py-28">
+        <BlurFade inView>
+          <div className="mb-10 text-center">
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/40">
+              Sample broadcast
+            </p>
+            <h2 className="mt-3 text-balance text-3xl font-semibold tracking-[-0.03em] text-white md:text-5xl">
+              Two minutes that took us{" "}
+              <span className="font-serif italic font-normal">zero</span>.
+            </h2>
+          </div>
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent p-2">
             <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
               <div className="absolute inset-0 grid place-items-center">
@@ -250,16 +476,16 @@ export default function Home() {
             goes out in under five minutes.
           </p>
           <div className="relative mt-10 flex justify-center">
-            <ShimmerButton
-              shimmerColor="#ffffff"
-              background="rgba(255,255,255,0.06)"
-              className="px-7 py-3.5 text-sm font-medium"
+            <Link
+              href="/sign-in"
+              className={cn(
+                buttonVariants(),
+                "h-12 rounded-full bg-white px-7 text-sm font-medium text-black hover:bg-white/90",
+              )}
             >
-              <span className="flex items-center gap-2">
-                Get on air
-                <ArrowRight className="size-4" />
-              </span>
-            </ShimmerButton>
+              Get on air
+              <ArrowRight className="ml-1.5 size-4" />
+            </Link>
           </div>
         </div>
       </section>

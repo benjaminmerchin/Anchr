@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
+
+import { ConvexClientProvider } from "@/components/convex-client-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,11 +31,9 @@ export const metadata: Metadata = {
     "Anchr turns your team's data into polished, on-brand video updates. Auto-generated from Slack, Gmail, GitHub and Notion.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const convexConfigured = Boolean(process.env.NEXT_PUBLIC_CONVEX_URL);
+
+function Shell({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
@@ -40,8 +41,23 @@ export default function RootLayout({
       className={`dark ${inter.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-black text-white">
-        {children}
+        <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>
+  );
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  if (!convexConfigured) {
+    return <Shell>{children}</Shell>;
+  }
+  return (
+    <ConvexAuthNextjsServerProvider>
+      <Shell>{children}</Shell>
+    </ConvexAuthNextjsServerProvider>
   );
 }
