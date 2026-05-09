@@ -5,8 +5,11 @@ import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { Database, GitBranch, Mail, MessageSquare, Sparkles } from "lucide-react";
 
+import { AnchrChat } from "@/components/anchr-chat";
 import { AnchrLogo } from "@/components/anchr-logo";
+import { HyperspellConnectButton } from "@/components/hyperspell-connect-button";
 import { Button } from "@/components/ui/button";
+import { getHyperspellToken } from "@/app/actions/hyperspell";
 import { api } from "../../../convex/_generated/api";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +42,7 @@ export default function DashboardPage() {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
           <AnchrLogo />
           <div className="flex items-center gap-2">
+            <HyperspellConnectButton getToken={getHyperspellToken} />
             <Button
               size="sm"
               variant="ghost"
@@ -77,6 +81,10 @@ export default function DashboardPage() {
               .
             </h1>
           </div>
+        </div>
+
+        <div className="mt-8">
+          <AnchrChat />
         </div>
 
         <div className="mt-10 grid gap-3">
