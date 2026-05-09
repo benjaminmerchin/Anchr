@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { Plug } from "lucide-react";
 
+import type { HyperspellTokenResult } from "@/app/actions/hyperspell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface Props {
   /** Server action that mints a Hyperspell user token. */
-  getToken: () => Promise<string>;
+  getToken: () => Promise<HyperspellTokenResult>;
   className?: string;
   label?: string;
 }
@@ -28,16 +29,21 @@ export function HyperspellConnectButton({
   async function handleConnect() {
     setLoading(true);
     try {
-      const token = await getToken();
+      const result = await getToken();
+      if (!result.ok) {
+        alert(`Failed to connect (${result.stage}):\n\n${result.message}`);
+        setLoading(false);
+        return;
+      }
       const redirectUri = `${window.location.origin}/dashboard`;
-      window.location.href = `https://connect.hyperspell.com?token=${token}&redirect_uri=${encodeURIComponent(
+      window.location.href = `https://connect.hyperspell.com?token=${result.token}&redirect_uri=${encodeURIComponent(
         redirectUri,
       )}`;
     } catch (error) {
-      console.error("Failed to get Hyperspell token:", error);
+      console.error("Unexpected error contacting server action:", error);
       const message =
         error instanceof Error ? error.message : "Unknown error";
-      alert(`Failed to connect to Hyperspell:\n\n${message}`);
+      alert(`Unexpected error:\n\n${message}`);
       setLoading(false);
     }
   }
