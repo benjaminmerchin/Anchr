@@ -7,6 +7,7 @@ import { Database, GitBranch, Mail, MessageSquare, Sparkles } from "lucide-react
 
 import { AnchrChat } from "@/components/anchr-chat";
 import { AnchrLogo } from "@/components/anchr-logo";
+import { BroadcastPanel } from "@/components/broadcast-panel";
 import { HyperspellConnectButton } from "@/components/hyperspell-connect-button";
 import { Button } from "@/components/ui/button";
 import { getHyperspellToken } from "@/app/actions/hyperspell";
@@ -110,48 +111,43 @@ export default function DashboardPage() {
                 <div
                   key={s._id}
                   className={cn(
-                    "group flex items-start gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition hover:border-white/20 hover:bg-white/[0.04]",
+                    "group flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition hover:border-white/20 hover:bg-white/[0.04]",
                   )}
                 >
-                  <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/[0.04]">
-                    <Icon className="size-4 text-white/80" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-base font-semibold text-white">
-                        {s.title}
-                      </h3>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-white/35">
-                        {s.sourceKind} · {relativeTime(s.detectedAt)}
-                      </span>
+                  <div className="flex items-start gap-4">
+                    <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/[0.04]">
+                      <Icon className="size-4 text-white/80" />
                     </div>
-                    <p className="mt-1.5 text-sm leading-relaxed text-white/60">
-                      {s.summary}
-                    </p>
-                    {s.evidence.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {s.evidence.map((e) => (
-                          <span
-                            key={e}
-                            className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-white/50"
-                          >
-                            {e}
-                          </span>
-                        ))}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-base font-semibold text-white">
+                          {s.title}
+                        </h3>
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-white/35">
+                          {s.sourceKind} · {relativeTime(s.detectedAt)}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-emerald-300">
+                      <p className="mt-1.5 text-sm leading-relaxed text-white/60">
+                        {s.summary}
+                      </p>
+                      {s.evidence.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {s.evidence.map((e) => (
+                            <span
+                              key={e}
+                              className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-white/50"
+                            >
+                              {e}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <span className="shrink-0 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-emerald-300">
                       {Math.round(s.score * 100)}
                     </span>
-                    <Button
-                      size="sm"
-                      className="rounded-full bg-white text-xs text-black hover:bg-white/90"
-                    >
-                      Broadcast
-                    </Button>
                   </div>
+                  <BroadcastPanel storyId={s._id} storyStatus={s.status} />
                 </div>
               );
             })
