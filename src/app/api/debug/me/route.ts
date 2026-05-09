@@ -39,14 +39,28 @@ export async function GET() {
     installed,
   );
 
+  const env = {
+    HYPERSPELL_API_KEY: presence(process.env.HYPERSPELL_API_KEY),
+    OPENAI_API_KEY: presence(process.env.OPENAI_API_KEY),
+    HEYGEN_API_KEY: presence(process.env.HEYGEN_API_KEY),
+    HEYGEN_AVATAR_ID: presence(process.env.HEYGEN_AVATAR_ID),
+    HEYGEN_VOICE_ID: presence(process.env.HEYGEN_VOICE_ID),
+    FAL_KEY: presence(process.env.FAL_KEY),
+  };
+
   return Response.json({
     ok: true,
     userId,
+    env,
     me,
     meError,
     defaultSearch,
     scopedSearch,
   });
+}
+
+function presence(v: string | undefined) {
+  return { present: Boolean(v), length: v?.length ?? 0 };
 }
 
 async function runSearch(
