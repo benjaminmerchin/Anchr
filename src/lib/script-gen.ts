@@ -25,6 +25,28 @@ Open with what shipped. Two sentences of substance. Close with what's next.`,
 
 export type ScriptTone = keyof typeof TONE_SYSTEM_PROMPTS;
 
+/**
+ * HeyGen rendering scales with the script length. Cap at ~1 minute of spoken
+ * audio so renders finish well within Vercel's 300s function timeout.
+ *
+ * 130 words ≈ 50-60 seconds of natural-pace speech. We cut on the nearest
+ * sentence boundary to keep the script feeling complete.
+ */
+const MAX_WORDS = 130;
+
+function clampScript(script: string, maxWords = MAX_WORDS): string {
+  const words = script.trim().split(/\s+/);
+  if (words.length <= maxWords) return script.trim();
+
+  const truncated = words.slice(0, maxWords).join(" ");
+  const lastBoundary = Math.max(
+    truncated.lastIndexOf("."),
+    truncated.lastIndexOf("!"),
+    truncated.lastIndexOf("?"),
+  );
+  return lastBoundary > 0 ? truncated.slice(0, lastBoundary + 1) : truncated;
+}
+
 interface StoryBrief {
   title: string;
   summary: string;
@@ -60,7 +82,7 @@ Summary: ${story.summary}${evidence}`;
     temperature: 0.7,
   });
 
-  return text.trim();
+  return clampScript(text);
 }
 
 const NEWSROOM_SYSTEM_PROMPT = `You are an investigative startup news anchor creating an internal company-news segment for users of a startup.
@@ -134,7 +156,8 @@ Important:
 - Prioritize the most interesting story, not necessarily the most recent one.
 
 Target length:
-Approximately 60–90 seconds when read aloud.`;
+Approximately 45–55 seconds when read aloud.
+Hard cap: 130 words. Stay under that — shorter is better than longer.`;
 
 interface DocSnippet {
   source?: string;
@@ -168,8 +191,79 @@ export async function generateNewsroomScript(
     temperature: 0.8,
   });
 
-  const cleaned = text.trim();
-  const title =
-    cleaned.match(/^TITLE:\s*\n?(.+?)\n/m)?.[1]?.trim() ?? "Newsroom broadcast";
-  return { title, script: cleaned };
+  const sections = parseAnchorSections(text);
+  const title = sections.title ?? "Newsroom broadcast";
+  // Speakable parts only — strip section headers so the avatar doesn't say
+  // "ANCHOR INTRO" out loud. Order roughly matches a real news segment.
+  const spoken = [
+    sections.anchorIntro,
+    sections.mainStory,
+    sections.supportingDetails,
+    sections.userImpact,
+    sections.secondaryStories,
+    sections.anchorClose,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const script = clampScript(spoken || text);
+  return { title, script };
+}
+
+interface AnchorSections {
+  title?: string;
+  anchorIntro?: string;
+  mainStory?: string;
+  supportingDetails?: string;
+  userImpact?: string;
+  secondaryStories?: string;
+  anchorClose?: string;
+}
+
+const HEADER_PATTERNS: Array<[keyof AnchorSections, RegExp]> = [
+  ["title", /^TITLE\s*:?$/i],
+  ["anchorIntro", /^ANCHOR\s+INTRO\s*:?$/i],
+  ["mainStory", /^MAIN\s+STORY\s*:?$/i],
+  ["supportingDetails", /^SUPPORTING\s+DETAILS\s*:?$/i],
+  ["userImpact", /^USER\s+IMPACT\s*:?$/i],
+  ["secondaryStories", /^SECONDARY\s+STORIES\s*:?$/i],
+  ["anchorClose", /^ANCHOR\s+CLOSE\s*:?$/i],
+];
+
+function parseAnchorSections(raw: string): AnchorSections {
+  const out: AnchorSections = {};
+  let current: keyof AnchorSections | null = null;
+  let buffer: string[] = [];
+
+  const flush = () => {
+    if (current && buffer.length > 0) {
+      out[current] = buffer.join(" ").replace(/\s+/g, " ").trim();
+    }
+    buffer = [];
+  };
+
+  for (const rawLine of raw.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) {
+      // empty lines preserve prose flow but don't break sections
+      continue;
+    }
+
+    // Detect a header: "ANCHOR INTRO:" alone on a line OR
+    //                  "ANCHOR INTRO: <inline content>"
+    const headerMatch = line.match(/^([A-Z][A-Z\s]+):\s*(.*)$/);
+    if (headerMatch) {
+      const tag = headerMatch[1].trim();
+      const matched = HEADER_PATTERNS.find(([, re]) => re.test(tag + ":"));
+      if (matched) {
+        flush();
+        current = matched[0];
+        if (headerMatch[2]) buffer.push(headerMatch[2]);
+        continue;
+      }
+    }
+
+    if (current) buffer.push(line);
+  }
+  flush();
+  return out;
 }

@@ -111,7 +111,9 @@ export async function generateHeyGenVideo(
   script: string,
   options: { pollIntervalMs?: number; timeoutMs?: number } = {},
 ): Promise<FinishedVideo & { videoId: string }> {
-  const { pollIntervalMs = 4000, timeoutMs = 240_000 } = options;
+  // Vercel's default function ceiling is 300s; leave a small margin so the
+  // catch-block and Convex mutation can run before the runtime kills us.
+  const { pollIntervalMs = 4000, timeoutMs = 280_000 } = options;
 
   const { videoId } = await submitHeyGenVideo(script);
   const startedAt = Date.now();
