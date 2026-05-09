@@ -9,9 +9,23 @@ import { z } from "zod";
 import { api } from "../../convex/_generated/api";
 
 /**
+ * Build a Hyperspell client scoped to the platform API key only (no user).
+ * Required for "admin" endpoints like `auth.userToken` that mint per-user
+ * tokens — those reject calls signed as a user token.
+ */
+export function getHyperspellAdminClient(): Hyperspell {
+  return new Hyperspell({
+    apiKey: process.env.HYPERSPELL_API_KEY!,
+  });
+}
+
+/**
  * Resolve the currently signed-in Anchr user and return both their stable
- * userId and a Hyperspell client scoped to that user. Throws if no user is
- * authenticated — call from server actions, route handlers, or RSC only.
+ * userId and a Hyperspell client scoped to that user. Use this for endpoints
+ * that operate on the user's data (queries, integrations, etc).
+ *
+ * Throws if no user is authenticated — call from server actions, route
+ * handlers, or RSC only.
  */
 export async function getHyperspellForCurrentUser(): Promise<{
   client: Hyperspell;
@@ -33,6 +47,24 @@ export async function getHyperspellForCurrentUser(): Promise<{
   });
 
   return { client, userId };
+}
+
+/**
+ * Resolve the currently signed-in Anchr user and return only their stable
+ * userId, without building a Hyperspell client. Use this when you need the
+ * userId for an admin call (e.g. `auth.userToken`) where a user-scoped
+ * client would be rejected.
+ */
+export async function getCurrentUserId(): Promise<string> {
+  const token = await convexAuthNextjsToken();
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+  const userId = await fetchQuery(api.users.viewerId, {}, { token });
+  if (!userId) {
+    throw new Error("Not authenticated");
+  }
+  return userId;
 }
 
 /**

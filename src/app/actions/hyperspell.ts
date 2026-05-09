@@ -1,6 +1,9 @@
 "use server";
 
-import { getHyperspellForCurrentUser } from "@/lib/hyperspell";
+import {
+  getCurrentUserId,
+  getHyperspellAdminClient,
+} from "@/lib/hyperspell";
 
 export type HyperspellTokenResult =
   | { ok: true; token: string }
@@ -20,9 +23,9 @@ export async function getHyperspellToken(): Promise<HyperspellTokenResult> {
     };
   }
 
-  let resolved: Awaited<ReturnType<typeof getHyperspellForCurrentUser>>;
+  let userId: string;
   try {
-    resolved = await getHyperspellForCurrentUser();
+    userId = await getCurrentUserId();
   } catch (err) {
     return {
       ok: false,
@@ -31,10 +34,11 @@ export async function getHyperspellToken(): Promise<HyperspellTokenResult> {
     };
   }
 
+  // auth.userToken requires the platform API key with NO user scope.
+  // Calling it through a user-scoped client returns 401.
   try {
-    const response = await resolved.client.auth.userToken({
-      user_id: resolved.userId,
-    });
+    const client = getHyperspellAdminClient();
+    const response = await client.auth.userToken({ user_id: userId });
     return { ok: true, token: response.token };
   } catch (err) {
     return {
