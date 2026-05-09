@@ -1,4 +1,4 @@
-import { getHyperspellForCurrentUser } from "@/lib/hyperspell";
+import { getHyperspellForCurrentUser, searchMemories } from "@/lib/hyperspell";
 
 export const runtime = "nodejs";
 
@@ -30,14 +30,12 @@ export async function GET() {
   let search: unknown = null;
   let searchError: string | null = null;
   try {
-    const result = await client.query.search({
-      query: "What has happened recently?",
+    const result = await searchMemories(userId, "What has happened recently?", {
       answer: false,
-      max_results: 3,
     });
     search = {
-      documents_count: Array.isArray((result as { documents?: unknown[] }).documents)
-        ? (result as { documents: unknown[] }).documents.length
+      documents_count: Array.isArray(result.documents)
+        ? result.documents.length
         : null,
       keys: Object.keys(result as object),
     };

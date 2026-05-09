@@ -90,10 +90,18 @@ export async function searchMemories(
     userId,
   });
 
-  return await client.query.search({
-    query,
-    answer,
-  });
+  // The SDK (v1.0.0) hits POST /query but the live API serves the
+  // search endpoint at /memories/query. Bypass the broken wrapper.
+  // Cast through unknown — `_client` is internal but exposed as a property.
+  const internal = (client as unknown as {
+    _client: {
+      post: (path: string, opts: { body: unknown }) => Promise<unknown>;
+    };
+  })._client;
+
+  return (await internal.post("/memories/query", {
+    body: { query, answer },
+  })) as { documents?: unknown[]; answer?: string };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
