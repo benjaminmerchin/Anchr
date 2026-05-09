@@ -4,14 +4,19 @@ import {
   nextjsMiddlewareRedirect,
 } from "@convex-dev/auth/nextjs/server";
 
+const isHomePage = createRouteMatcher(["/"]);
 const isSignInPage = createRouteMatcher(["/sign-in"]);
 const isProtected = createRouteMatcher(["/dashboard(.*)"]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
-  if (isSignInPage(request) && (await convexAuth.isAuthenticated())) {
+  const authed = await convexAuth.isAuthenticated();
+
+  // Authenticated users skip the marketing site and the sign-in form.
+  if (authed && (isHomePage(request) || isSignInPage(request))) {
     return nextjsMiddlewareRedirect(request, "/dashboard");
   }
-  if (isProtected(request) && !(await convexAuth.isAuthenticated())) {
+
+  if (!authed && isProtected(request)) {
     return nextjsMiddlewareRedirect(request, "/sign-in");
   }
 });
