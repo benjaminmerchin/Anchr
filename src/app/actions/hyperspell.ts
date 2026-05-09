@@ -7,7 +7,22 @@ import {
 
 export type HyperspellTokenResult =
   | { ok: true; token: string }
-  | { ok: false; stage: "env" | "auth" | "hyperspell"; message: string };
+  | {
+      ok: false;
+      stage: "env" | "auth" | "hyperspell";
+      message: string;
+      keyShape?: { present: boolean; length: number; prefix: string };
+    };
+
+function describeKey() {
+  const k = process.env.HYPERSPELL_API_KEY ?? "";
+  return {
+    present: k.length > 0,
+    length: k.length,
+    // First 4 chars are enough to confirm "hs2-" prefix without leaking
+    prefix: k.slice(0, 4),
+  };
+}
 
 /**
  * Server action: mint a short-lived Hyperspell user token for the signed-in
@@ -15,11 +30,15 @@ export type HyperspellTokenResult =
  * failure stage instead of Next.js's redacted production error message.
  */
 export async function getHyperspellToken(): Promise<HyperspellTokenResult> {
-  if (!process.env.HYPERSPELL_API_KEY) {
+  const keyShape = describeKey();
+  console.log("[hyperspell] keyShape", keyShape);
+
+  if (!keyShape.present) {
     return {
       ok: false,
       stage: "env",
       message: "HYPERSPELL_API_KEY is not configured on the server.",
+      keyShape,
     };
   }
 
@@ -31,11 +50,10 @@ export async function getHyperspellToken(): Promise<HyperspellTokenResult> {
       ok: false,
       stage: "auth",
       message: err instanceof Error ? err.message : String(err),
+      keyShape,
     };
   }
 
-  // auth.userToken requires the platform API key with NO user scope.
-  // Calling it through a user-scoped client returns 401.
   try {
     const client = getHyperspellAdminClient();
     const response = await client.auth.userToken({ user_id: userId });
@@ -45,6 +63,7 @@ export async function getHyperspellToken(): Promise<HyperspellTokenResult> {
       ok: false,
       stage: "hyperspell",
       message: err instanceof Error ? err.message : String(err),
+      keyShape,
     };
   }
 }

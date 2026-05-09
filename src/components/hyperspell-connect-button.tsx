@@ -31,7 +31,12 @@ export function HyperspellConnectButton({
     try {
       const result = await getToken();
       if (!result.ok) {
-        alert(`Failed to connect (${result.stage}):\n\n${result.message}`);
+        const shape = result.keyShape
+          ? `\n\nkey: present=${result.keyShape.present}, length=${result.keyShape.length}, prefix=${JSON.stringify(result.keyShape.prefix)}`
+          : "";
+        alert(
+          `Failed to connect (${result.stage}):\n\n${result.message}${shape}`,
+        );
         setLoading(false);
         return;
       }
