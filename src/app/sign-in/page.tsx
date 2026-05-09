@@ -1,9 +1,10 @@
 "use client";
 
 import { useAuthActions } from "@convex-dev/auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 
 import { AnchrLogo } from "@/components/anchr-logo";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,13 @@ export default function SignInPage() {
     <div className="relative flex min-h-screen flex-col bg-black text-white">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <AnchrLogo />
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs text-white/60 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+        >
+          <ArrowLeft className="size-3.5" />
+          Back
+        </Link>
       </div>
 
       <main className="flex flex-1 items-center justify-center px-6 py-12">
