@@ -29,16 +29,15 @@ export function HyperspellConnectButton({
     setLoading(true);
     try {
       const token = await getToken();
-      // Explicit absolute /dashboard URL — strip any query string Hyperspell
-      // might re-append, and avoid the home page taking over if Hyperspell
-      // only respects the origin part of the redirect.
       const redirectUri = `${window.location.origin}/dashboard`;
       window.location.href = `https://connect.hyperspell.com?token=${token}&redirect_uri=${encodeURIComponent(
         redirectUri,
       )}`;
     } catch (error) {
       console.error("Failed to get Hyperspell token:", error);
-      alert("Failed to connect. Please try again.");
+      const message =
+        error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to connect to Hyperspell:\n\n${message}`);
       setLoading(false);
     }
   }

@@ -8,11 +8,30 @@ import { getHyperspellForCurrentUser } from "@/lib/hyperspell";
  * user can authorize their own accounts (Gmail, Slack, GitHub, Notion, ...).
  */
 export async function getHyperspellToken(): Promise<string> {
-  const { client, userId } = await getHyperspellForCurrentUser();
+  if (!process.env.HYPERSPELL_API_KEY) {
+    throw new Error("HYPERSPELL_API_KEY is not configured on the server");
+  }
 
-  const response = await client.auth.userToken({
-    user_id: userId,
-  });
+  let client: Awaited<
+    ReturnType<typeof getHyperspellForCurrentUser>
+  >["client"];
+  let userId: string;
+  try {
+    ({ client, userId } = await getHyperspellForCurrentUser());
+  } catch (err) {
+    throw new Error(
+      `Could not resolve Anchr viewer: ${err instanceof Error ? err.message : err}`,
+    );
+  }
 
-  return response.token;
+  try {
+    const response = await client.auth.userToken({ user_id: userId });
+    return response.token;
+  } catch (err) {
+    throw new Error(
+      `Hyperspell userToken failed for user ${userId}: ${
+        err instanceof Error ? err.message : err
+      }`,
+    );
+  }
 }
