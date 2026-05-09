@@ -22,16 +22,35 @@ export default function SignInPage() {
   async function handlePassword(formData: FormData) {
     setError(null);
     setPending(true);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
     try {
-      await signIn("password", {
-        email: formData.get("email") as string,
-        password: formData.get("password") as string,
-        flow: mode,
-      });
+      try {
+        await signIn("password", { email, password, flow: mode });
+      } catch (firstErr) {
+        // Be forgiving: if "Sign in" fails because the account doesn't
+        // exist, fall back to creating one. If "Sign up" fails because
+        // the account already exists, fall back to signing in.
+        const message = firstErr instanceof Error ? firstErr.message : "";
+        const looksMissing = /InvalidAccount|account.*not.*found/i.test(
+          message,
+        );
+        const looksExisting = /already|exists|duplicate/i.test(message);
+        if (mode === "signIn" && looksMissing) {
+          await signIn("password", { email, password, flow: "signUp" });
+        } else if (mode === "signUp" && looksExisting) {
+          await signIn("password", { email, password, flow: "signIn" });
+        } else {
+          throw firstErr;
+        }
+      }
       router.push("/dashboard");
     } catch (err) {
+      const raw = err instanceof Error ? err.message : "Could not sign in.";
       setError(
-        err instanceof Error ? err.message : "Could not sign in.",
+        raw.includes("InvalidAccount")
+          ? "No account with this email yet — create one below."
+          : raw,
       );
     } finally {
       setPending(false);
@@ -129,8 +148,11 @@ export default function SignInPage() {
 
           <button
             type="button"
-            onClick={() => setMode(mode === "signIn" ? "signUp" : "signIn")}
-            className="mt-4 w-full text-center text-xs text-white/55 hover:text-white"
+            onClick={() => {
+              setMode(mode === "signIn" ? "signUp" : "signIn");
+              setError(null);
+            }}
+            className="mt-4 w-full text-center text-sm text-white/70 underline-offset-4 hover:text-white hover:underline"
           >
             {mode === "signIn"
               ? "No account? Create one →"
