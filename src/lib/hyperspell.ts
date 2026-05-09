@@ -91,15 +91,15 @@ export async function searchMemories(
   });
 
   // The SDK (v1.0.0) hits POST /query but the live API serves the
-  // search endpoint at /memories/query. Bypass the broken wrapper.
-  // Cast through unknown — `_client` is internal but exposed as a property.
-  const internal = (client as unknown as {
-    _client: {
+  // search endpoint at /memories/query. Bypass the broken wrapper by
+  // calling the underlying request method directly.
+  const post = (
+    client as unknown as {
       post: (path: string, opts: { body: unknown }) => Promise<unknown>;
-    };
-  })._client;
+    }
+  ).post.bind(client);
 
-  return (await internal.post("/memories/query", {
+  return (await post("/memories/query", {
     body: { query, answer },
   })) as { documents?: unknown[]; answer?: string };
 }
