@@ -29,7 +29,7 @@ export async function getHyperspellForCurrentUser(): Promise<{
 
   const client = new Hyperspell({
     apiKey: process.env.HYPERSPELL_API_KEY!,
-    userID: userId,
+    userId,
   });
 
   return { client, userId };
@@ -55,10 +55,10 @@ export async function searchMemories(
 
   const client = new Hyperspell({
     apiKey: process.env.HYPERSPELL_API_KEY!,
-    userID: userId,
+    userId,
   });
 
-  return await client.memories.search({
+  return await client.query.search({
     query,
     answer,
   });
