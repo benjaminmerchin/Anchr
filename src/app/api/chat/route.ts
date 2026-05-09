@@ -1,7 +1,11 @@
 import { openai } from "@ai-sdk/openai";
 import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from "ai";
 
-import { getHyperspellForCurrentUser, searchMemoriesAITool } from "@/lib/hyperspell";
+import {
+  getHyperspellForCurrentUser,
+  getInstalledSources,
+  searchMemoriesAITool,
+} from "@/lib/hyperspell";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -19,14 +23,17 @@ export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   // This throws if the viewer is not signed in via Convex auth.
-  const { userId } = await getHyperspellForCurrentUser();
+  const { client, userId } = await getHyperspellForCurrentUser();
+  // Hyperspell defaults to an empty `vault` collection when sources are not
+  // specified — always scope searches to what the user actually connected.
+  const sources = await getInstalledSources(client);
 
   const result = streamText({
     model: openai("gpt-4o-mini"),
     system: SYSTEM_PROMPT,
     messages: convertToModelMessages(messages),
     tools: {
-      search_memories: searchMemoriesAITool(userId),
+      search_memories: searchMemoriesAITool(userId, sources),
     },
     // Allow the model to chain: search → reason → optionally search again → answer.
     stopWhen: stepCountIs(5),

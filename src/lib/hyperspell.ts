@@ -156,16 +156,24 @@ export const searchMemoriesAnthropicTool = {
 export async function executeSearchMemories(
   userId: string,
   args: { query: string },
+  options: { sources?: string[] } = {},
 ) {
-  const result = await searchMemories(userId, args.query, { answer: false });
+  const result = await searchMemories(userId, args.query, {
+    answer: false,
+    ...(options.sources && options.sources.length > 0
+      ? { sources: options.sources }
+      : {}),
+  });
   return { documents: result.documents ?? [] };
 }
 
 /**
  * Vercel AI SDK tool factory. Returns a `search_memories` tool bound to the
- * given user. Pass into `streamText({ tools: { search_memories: ... } })`.
+ * given user, always scoped to the integrations they have actually installed
+ * — without explicit sources Hyperspell defaults to an empty `vault`
+ * collection and returns nothing.
  */
-export function searchMemoriesAITool(userId: string) {
+export function searchMemoriesAITool(userId: string, sources: string[]) {
   return tool({
     description: SEARCH_TOOL_DESCRIPTION,
     inputSchema: z.object({
@@ -173,6 +181,19 @@ export function searchMemoriesAITool(userId: string) {
         .string()
         .describe("Natural-language search query, phrased as a question."),
     }),
-    execute: async ({ query }) => executeSearchMemories(userId, { query }),
+    execute: async ({ query }) =>
+      executeSearchMemories(userId, { query }, { sources }),
   });
+}
+
+/**
+ * Fetch the integrations the current user has actually installed in
+ * Hyperspell (Gmail, Slack, GitHub, Notion, ...). Returned in the same string
+ * format Hyperspell expects in the `sources` array.
+ */
+export async function getInstalledSources(client: Hyperspell): Promise<string[]> {
+  const me = (await client.auth.me()) as {
+    installed_integrations?: string[];
+  };
+  return me.installed_integrations ?? [];
 }
