@@ -1,11 +1,14 @@
-import { getHyperspellForCurrentUser, searchMemories } from "@/lib/hyperspell";
+import {
+  getHyperspellForCurrentUser,
+  searchMemories,
+} from "@/lib/hyperspell";
 
 export const runtime = "nodejs";
 
 /**
  * Diagnostic-only route. Returns what Hyperspell knows about the currently
- * signed-in viewer: their userId, the integrations they have installed, and
- * a quick test search. No secrets are exposed.
+ * signed-in viewer: their userId, the integrations they have installed, a
+ * default search and a search restricted to installed integrations.
  */
 export async function GET() {
   let resolved: Awaited<ReturnType<typeof getHyperspellForCurrentUser>>;
@@ -19,38 +22,59 @@ export async function GET() {
   }
   const { client, userId } = resolved;
 
-  let me: unknown = null;
+  let me: { installed_integrations?: string[] } | null = null;
   let meError: string | null = null;
   try {
-    me = await client.auth.me();
+    me = (await client.auth.me()) as { installed_integrations?: string[] };
   } catch (err) {
     meError = errMsg(err);
   }
 
-  let search: unknown = null;
-  let searchError: string | null = null;
-  try {
-    const result = await searchMemories(userId, "What has happened recently?", {
-      answer: false,
-    });
-    search = {
-      documents_count: Array.isArray(result.documents)
-        ? result.documents.length
-        : null,
-      keys: Object.keys(result as object),
-    };
-  } catch (err) {
-    searchError = errMsg(err);
-  }
+  const installed = me?.installed_integrations ?? [];
+
+  const defaultSearch = await runSearch(userId, "What has happened recently?");
+  const scopedSearch = await runSearch(
+    userId,
+    "What has happened recently?",
+    installed,
+  );
 
   return Response.json({
     ok: true,
     userId,
     me,
     meError,
-    search,
-    searchError,
+    defaultSearch,
+    scopedSearch,
   });
+}
+
+async function runSearch(
+  userId: string,
+  query: string,
+  sources?: string[],
+) {
+  try {
+    const result = (await searchMemories(userId, query, {
+      answer: false,
+      ...(sources && sources.length > 0 ? { sources } : {}),
+    })) as {
+      documents?: unknown[];
+      errors?: unknown;
+      query_id?: string;
+    };
+    return {
+      ok: true,
+      documents_count: Array.isArray(result.documents)
+        ? result.documents.length
+        : null,
+      errors: result.errors ?? null,
+      query_id: result.query_id ?? null,
+      sources: sources ?? "default",
+    };
+  } catch (err) {
+    return { ok: false, error: errMsg(err), sources: sources ?? "default" };
+  }
 }
 
 function errMsg(err: unknown): string {

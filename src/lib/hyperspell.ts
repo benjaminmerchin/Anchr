@@ -81,9 +81,9 @@ export async function getCurrentUserId(): Promise<string> {
 export async function searchMemories(
   userId: string,
   query: string,
-  options: { answer?: boolean } = {},
+  options: { answer?: boolean; sources?: string[] } = {},
 ) {
-  const { answer = true } = options;
+  const { answer = true, sources } = options;
 
   const client = new Hyperspell({
     apiKey: process.env.HYPERSPELL_API_KEY!,
@@ -99,9 +99,15 @@ export async function searchMemories(
     }
   ).post.bind(client);
 
-  return (await post("/memories/query", {
-    body: { query, answer },
-  })) as { documents?: unknown[]; answer?: string };
+  const body: Record<string, unknown> = { query, answer };
+  if (sources && sources.length > 0) body.sources = sources;
+
+  return (await post("/memories/query", { body })) as {
+    documents?: unknown[];
+    answer?: string;
+    errors?: unknown;
+    query_id?: string;
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
