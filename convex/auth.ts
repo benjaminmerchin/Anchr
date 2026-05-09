@@ -2,15 +2,21 @@ import { Anonymous } from "@convex-dev/auth/providers/Anonymous";
 import { Password } from "@convex-dev/auth/providers/Password";
 import { convexAuth } from "@convex-dev/auth/server";
 
-// Normalize JWT_PRIVATE_KEY in case the value lost its real newlines
-// when it was pasted into the Convex env var dashboard. Accept both:
-//   - the raw multiline PEM
-//   - a single-line PEM where every newline was stored as the literal
-//     two-character sequence "\n"
+// Normalize JWT_PRIVATE_KEY before any auth module reads it.
+// Tolerate values that were pasted with extra prefix/suffix (a "Value:"
+// label, a leading bullet, stray whitespace) or with newlines stored
+// as the literal two-character sequence "\n" or as CRLF.
 if (typeof process.env.JWT_PRIVATE_KEY === "string") {
-  process.env.JWT_PRIVATE_KEY = process.env.JWT_PRIVATE_KEY
+  let key = process.env.JWT_PRIVATE_KEY
     .replace(/\\n/g, "\n")
-    .trim();
+    .replace(/\r/g, "");
+  const pem = key.match(
+    /-----BEGIN [A-Z ]+-----[\s\S]*?-----END [A-Z ]+-----/,
+  );
+  if (pem) {
+    key = pem[0];
+  }
+  process.env.JWT_PRIVATE_KEY = key.trim();
 }
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
