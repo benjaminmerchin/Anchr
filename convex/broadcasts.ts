@@ -110,6 +110,25 @@ export const setFailed = mutation({
 });
 
 /**
+ * Backfill the thumbnail on an existing broadcast (after the schema gained
+ * `thumbnailUrl` and we want to populate older rows). Owner-only.
+ */
+export const setThumbnail = mutation({
+  args: {
+    broadcastId: v.id("broadcasts"),
+    thumbnailUrl: v.string(),
+  },
+  handler: async (ctx, { broadcastId, thumbnailUrl }) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    const existing = await ctx.db.get(broadcastId);
+    if (!existing || existing.userId !== userId)
+      throw new Error("Not authorized");
+    await ctx.db.patch(broadcastId, { thumbnailUrl });
+  },
+});
+
+/**
  * Delete a broadcast row. Owner-only.
  */
 export const remove = mutation({
