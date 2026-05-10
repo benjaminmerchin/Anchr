@@ -76,7 +76,7 @@ Headline: ${story.title}
 Summary: ${story.summary}${evidence}`;
 
   const { text } = await generateText({
-    model: openai("gpt-4o-mini"),
+    model: openai("gpt-5.4"),
     system,
     prompt,
     temperature: 0.7,
@@ -185,7 +185,7 @@ export async function generateNewsroomScript(
   const prompt = `Internal documents follow. Read across all of them and produce the news-anchor script.\n\n${corpus || "(no documents were retrieved — write a short, plausible founder broadcast based on common startup themes)"}`;
 
   const { text } = await generateText({
-    model: openai("gpt-4o-mini"),
+    model: openai("gpt-5.4"),
     system: NEWSROOM_SYSTEM_PROMPT,
     prompt,
     temperature: 0.8,

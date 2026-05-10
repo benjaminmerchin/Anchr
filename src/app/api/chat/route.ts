@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   const sources = await getInstalledSources(client);
 
   const result = streamText({
-    model: openai("gpt-4o-mini"),
+    model: openai("gpt-5.4"),
     system: SYSTEM_PROMPT,
     messages: convertToModelMessages(messages),
     tools: {
