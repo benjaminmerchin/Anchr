@@ -154,7 +154,7 @@ Important:
 - Do not over-explain the source retrieval process.
 - Do not limit the answer by document date.
 - Prioritize the most interesting story, not necessarily the most recent one.
-- Do NOT use the words "Anchor" or "Anchr" in the TITLE — the title should describe the actual story, not the format. Pick a real headline like a real newspaper would.
+- The product is called "Anchr" — note the spelling: A-n-c-h-r, NO 'o'. Never write "Anchor" or "AnchR"; only "Anchr" is correct. You may reference it by name when it fits the story.
 
 Target length:
 Approximately 45–55 seconds when read aloud.
