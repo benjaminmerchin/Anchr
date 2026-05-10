@@ -3,6 +3,8 @@ import "server-only";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 
+import { searchCompetitiveContext } from "./nia";
+
 const TONE_SYSTEM_PROMPTS: Record<string, string> = {
   standard: `You are writing a spoken script for a polished business news anchor.
 Write only the exact words the anchor will say out loud.
@@ -20,7 +22,9 @@ End with a memorable line. Speak like live television — urgent, credible, elec
 Write only the exact words the anchor will say out loud.
 No stage directions, no markdown, no headers, no URLs.
 First-person plural ("we shipped", "we hit"). Direct, warm, grateful.
-Open with what shipped. Two sentences of substance. Close with what's next.`,
+Open with what shipped. Two sentences of substance. Close with what's next.
+
+If the brief includes "Meanwhile, in the industry…" context about a competitor, you MAY weave in a single short comparison clause ("while others were still figuring out X, we just shipped Y") — but only if it fits naturally. Skip it if the comparison feels forced. Never quote competitor names you weren't given.`,
 };
 
 export type ScriptTone = keyof typeof TONE_SYSTEM_PROMPTS;
@@ -70,10 +74,19 @@ export async function generateAnchorScript(
       ? `\nEvidence pulled from ${story.sourceKind ?? "source"}: ${story.evidence.join(", ")}.`
       : "";
 
+  // Optional competitive context from Nia — fail-soft. If it returns null
+  // (no key, timeout, error) we just skip it and the prompt still works.
+  const competitive = await searchCompetitiveContext(
+    `What have direct competitors of "${story.title}" shipped or announced in the last few weeks? Give one specific example.`,
+  );
+  const competitiveLine = competitive
+    ? `\n\nMeanwhile, in the industry — for an optional one-line "vs them" comparison: ${competitive}`
+    : "";
+
   const prompt = `Topic brief — turn this into a 30-second on-camera script.
 
 Headline: ${story.title}
-Summary: ${story.summary}${evidence}`;
+Summary: ${story.summary}${evidence}${competitiveLine}`;
 
   const { text } = await generateText({
     model: openai("gpt-5.4"),
