@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
 import {
   Camera,
@@ -11,6 +11,7 @@ import {
   Music,
   Play,
   Radio,
+  Trash2,
 } from "lucide-react";
 
 import { publishBroadcast } from "@/app/actions/broadcast";
@@ -84,6 +85,8 @@ function BroadcastCard({
   onToggle: () => void;
 }) {
   const [publishing, setPublishing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const removeBroadcast = useMutation(api.broadcasts.remove);
 
   const status = broadcast.status;
   const ready = status === "ready" && Boolean(broadcast.videoUrl);
@@ -96,6 +99,16 @@ function BroadcastCard({
       await publishBroadcast(broadcast._id);
     } finally {
       setPublishing(false);
+    }
+  }
+
+  async function remove() {
+    if (!window.confirm("Delete this broadcast?")) return;
+    setDeleting(true);
+    try {
+      await removeBroadcast({ broadcastId: broadcast._id });
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -173,12 +186,27 @@ function BroadcastCard({
               {relative(broadcast._creationTime)}
             </div>
           </div>
-          {published ? (
-            <span className="flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-emerald-300">
-              <CheckCircle2 className="size-3" />
-              live
-            </span>
-          ) : null}
+          <div className="flex items-center gap-2">
+            {published ? (
+              <span className="flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-emerald-300">
+                <CheckCircle2 className="size-3" />
+                live
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={remove}
+              disabled={deleting}
+              title="Delete broadcast"
+              className="grid size-7 place-items-center rounded-full border border-white/10 bg-white/[0.03] text-white/55 transition hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-50"
+            >
+              {deleting ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <Trash2 className="size-3" />
+              )}
+            </button>
+          </div>
         </div>
 
         {ready && (

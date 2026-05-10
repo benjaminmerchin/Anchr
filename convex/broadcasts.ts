@@ -108,6 +108,21 @@ export const setFailed = mutation({
 });
 
 /**
+ * Delete a broadcast row. Owner-only.
+ */
+export const remove = mutation({
+  args: { broadcastId: v.id("broadcasts") },
+  handler: async (ctx, { broadcastId }) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    const existing = await ctx.db.get(broadcastId);
+    if (!existing) return;
+    if (existing.userId !== userId) throw new Error("Not authorized");
+    await ctx.db.delete(broadcastId);
+  },
+});
+
+/**
  * Mark a broadcast as published (currently a stub — no real social posting
  * during the hackathon, just the UX).
  */
