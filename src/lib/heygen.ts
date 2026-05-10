@@ -16,6 +16,9 @@ interface HeyGenStatusResponse {
   data?: {
     status?: "pending" | "processing" | "completed" | "failed";
     video_url?: string;
+    thumbnail_url?: string;
+    gif_url?: string;
+    duration?: number;
     error?: { message?: string; code?: number } | null;
   };
 }
@@ -26,6 +29,7 @@ export interface SubmittedVideo {
 
 export interface FinishedVideo {
   videoUrl: string;
+  thumbnailUrl?: string;
 }
 
 function requireEnv(name: string): string {
@@ -123,7 +127,11 @@ export async function generateHeyGenVideo(
     const data = await pollHeyGenVideo(videoId);
     const status = data?.status;
     if (status === "completed" && data?.video_url) {
-      return { videoId, videoUrl: data.video_url };
+      return {
+        videoId,
+        videoUrl: data.video_url,
+        thumbnailUrl: data.thumbnail_url,
+      };
     }
     if (status === "failed") {
       throw new Error(

@@ -80,8 +80,9 @@ export const setReady = mutation({
   args: {
     broadcastId: v.id("broadcasts"),
     videoUrl: v.string(),
+    thumbnailUrl: v.optional(v.string()),
   },
-  handler: async (ctx, { broadcastId, videoUrl }) => {
+  handler: async (ctx, { broadcastId, videoUrl, thumbnailUrl }) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
     const existing = await ctx.db.get(broadcastId);
@@ -89,6 +90,7 @@ export const setReady = mutation({
       throw new Error("Not authorized");
     await ctx.db.patch(broadcastId, {
       videoUrl,
+      ...(thumbnailUrl ? { thumbnailUrl } : {}),
       status: "ready",
       publishedAt: Date.now(),
     });

@@ -128,6 +128,7 @@ function BroadcastCard({
         open ? (
           <video
             src={broadcast.videoUrl}
+            poster={broadcast.thumbnailUrl}
             controls
             playsInline
             autoPlay
@@ -139,15 +140,24 @@ function BroadcastCard({
             onClick={onToggle}
             className="group/play relative aspect-video w-full overflow-hidden bg-black"
           >
-            {/* native preload renders the first frame as a poster */}
-            <video
-              src={broadcast.videoUrl}
-              preload="metadata"
-              muted
-              playsInline
-              className="absolute inset-0 h-full w-full object-cover opacity-80 transition group-hover/play:opacity-100"
-            />
-            <div className="absolute inset-0 grid place-items-center">
+            {broadcast.thumbnailUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={broadcast.thumbnailUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover opacity-80 transition group-hover/play:opacity-100"
+              />
+            ) : (
+              // Fallback: ask the browser to render the first frame.
+              <video
+                src={broadcast.videoUrl}
+                preload="metadata"
+                muted
+                playsInline
+                className="absolute inset-0 h-full w-full object-cover opacity-80 transition group-hover/play:opacity-100"
+              />
+            )}
+            <div className="absolute inset-0 grid place-items-center bg-gradient-to-t from-black/40 to-transparent">
               <div className="grid size-14 place-items-center rounded-full border border-white/30 bg-black/50 backdrop-blur transition group-hover/play:scale-110">
                 <Play className="size-5 fill-white text-white" />
               </div>

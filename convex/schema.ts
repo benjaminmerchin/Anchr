@@ -65,6 +65,8 @@ export default defineSchema({
     script: v.string(),
     /** Hosted MP4 / playback URL */
     videoUrl: v.optional(v.string()),
+    /** First-frame thumbnail (returned by HeyGen alongside the video). */
+    thumbnailUrl: v.optional(v.string()),
     /** Provider that rendered the video */
     videoProvider: v.optional(
       v.union(

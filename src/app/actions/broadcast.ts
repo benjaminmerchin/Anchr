@@ -87,10 +87,10 @@ export async function generateBroadcast(
   );
 
   try {
-    const { videoUrl } = await generateHeyGenVideo(script);
+    const { videoUrl, thumbnailUrl } = await generateHeyGenVideo(script);
     await fetchMutation(
       api.broadcasts.setReady,
-      { broadcastId, videoUrl },
+      { broadcastId, videoUrl, ...(thumbnailUrl ? { thumbnailUrl } : {}) },
       { token },
     );
     return { ok: true, broadcastId, videoUrl };
@@ -219,10 +219,10 @@ export async function generateNewsroomBroadcast(): Promise<GenerateNewsroomResul
 
   // 3. HeyGen renders the avatar reading the script.
   try {
-    const { videoUrl } = await generateHeyGenVideo(script);
+    const { videoUrl, thumbnailUrl } = await generateHeyGenVideo(script);
     await fetchMutation(
       api.broadcasts.setReady,
-      { broadcastId, videoUrl },
+      { broadcastId, videoUrl, ...(thumbnailUrl ? { thumbnailUrl } : {}) },
       { token },
     );
     return { ok: true, broadcastId, videoUrl };
