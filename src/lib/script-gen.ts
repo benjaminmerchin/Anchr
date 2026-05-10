@@ -154,6 +154,7 @@ Important:
 - Do not over-explain the source retrieval process.
 - Do not limit the answer by document date.
 - Prioritize the most interesting story, not necessarily the most recent one.
+- Do NOT use the words "Anchor" or "Anchr" in the TITLE — the title should describe the actual story, not the format. Pick a real headline like a real newspaper would.
 
 Target length:
 Approximately 45–55 seconds when read aloud.
